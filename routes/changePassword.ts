@@ -36,7 +36,8 @@ export function changePassword () {
       return
     }
 
-    if (currentPassword && security.hash(currentPassword) !== loggedInUser.data.password) {
+    // The current password must always be supplied and verified before a password change is allowed
+    if (typeof currentPassword !== 'string' || !currentPassword || security.hash(currentPassword) !== loggedInUser.data.password) {
       res.status(401).send(res.__('Current password is not correct.'))
       return
     }
