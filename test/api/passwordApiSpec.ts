@@ -85,7 +85,7 @@ describe('/rest/user/change-password', () => {
       .expect('bodyContains', 'Error: Blocked illegal activity')
   })
 
-  it('GET password change for Bender without current password using GET request', () => {
+  it('GET password change for Bender without current password is rejected', () => {
     return frisby.post(REST_URL + '/user/login', {
       headers: jsonHeader,
       body: {
@@ -98,7 +98,43 @@ describe('/rest/user/change-password', () => {
         return frisby.get(REST_URL + '/user/change-password?new=slurmCl4ssic&repeat=slurmCl4ssic', {
           headers: { Authorization: 'Bearer ' + json.authentication.token }
         })
-          .expect('status', 200)
+          .expect('status', 401)
+          .expect('bodyContains', 'Current password is not correct')
+      })
+  })
+
+  it('GET password change with empty current password is rejected', () => {
+    return frisby.post(REST_URL + '/user/login', {
+      headers: jsonHeader,
+      body: {
+        email: 'bender@' + config.get<string>('application.domain'),
+        password: 'OhG0dPlease1nsertLiquor!'
+      }
+    })
+      .expect('status', 200)
+      .then(({ json }) => {
+        return frisby.get(REST_URL + '/user/change-password?current=&new=slurmCl4ssic&repeat=slurmCl4ssic', {
+          headers: { Authorization: 'Bearer ' + json.authentication.token }
+        })
+          .expect('status', 401)
+          .expect('bodyContains', 'Current password is not correct')
+      })
+  })
+
+  it('GET password change with array-typed current password is rejected', () => {
+    return frisby.post(REST_URL + '/user/login', {
+      headers: jsonHeader,
+      body: {
+        email: 'bender@' + config.get<string>('application.domain'),
+        password: 'OhG0dPlease1nsertLiquor!'
+      }
+    })
+      .expect('status', 200)
+      .then(({ json }) => {
+        return frisby.get(REST_URL + '/user/change-password?current[]=a&new=slurmCl4ssic&repeat=slurmCl4ssic', {
+          headers: { Authorization: 'Bearer ' + json.authentication.token }
+        })
+          .expect('status', 401)
       })
   })
 })
