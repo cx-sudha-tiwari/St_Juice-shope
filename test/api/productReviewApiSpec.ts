@@ -145,6 +145,26 @@ describe('/rest/products/reviews', () => {
       })
   })
 
+  it('POST product review like with NoSQL operator object as id is rejected', () => {
+    return frisby.post(`${REST_URL}/user/login`, {
+      headers: jsonHeader,
+      body: {
+        email: 'bjoern.kimminich@gmail.com',
+        password: 'bW9jLmxpYW1nQGhjaW5pbW1pay5ucmVvamI='
+      }
+    })
+      .expect('status', 200)
+      .then(({ json: jsonLogin }) => {
+        return frisby.post(`${REST_URL}/products/reviews`, {
+          headers: { Authorization: `Bearer ${jsonLogin.authentication.token}`, 'content-type': 'application/json' },
+          body: {
+            id: { $ne: -1 }
+          }
+        })
+          .expect('status', 400)
+      })
+  })
+
   it('PATCH multiple product review via injection', () => {
     // Count all the reviews. (Count starts at one because of the review inserted by the other tests...)
     const totalReviews = config.get<Product[]>('products').reduce((sum: number, { reviews = [] }: any) => sum + reviews.length, 1)

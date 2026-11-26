@@ -15,11 +15,16 @@ const sleep = async (ms: number) => await new Promise(resolve => setTimeout(reso
 
 export function likeProductReviews () {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.body.id
     const user = security.authenticatedUsers.from(req)
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
+
+    // Only plain string ids are accepted; objects such as { "$ne": -1 } would be interpreted as query operators
+    if (typeof req.body.id !== 'string') {
+      return res.status(400).json({ error: 'Wrong Params' })
+    }
+    const id: string = String(req.body.id)
 
     try {
       const review = await db.reviewsCollection.findOne({ _id: id })
